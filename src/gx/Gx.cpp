@@ -2,7 +2,7 @@
 #include "gx/Device.hpp"
 
 const char* vsProfileNames[] = {
-    "none", "vs_1_1", "vs_2_0", "vs_3_0", "vs_4_0", "vs_5_0", "arbvp1", "arbvp1_cg12", "nvvp", "nvvp2", "nvvp3", "glsl"
+    "none", "vs_1_1", "vs_2_0", "vs_3_0", "vs_4_0", "vs_5_0", "arbvp1", "arbvp1_cg12", "nvvp", "nvvp2", "nvvp3", "glsl", "wgsl"
 };
 
 const char* hsProfileNames[] = {
@@ -18,7 +18,7 @@ const char* gsProfileNames[] = {
 };
 
 const char* psProfileNames[] = {
-    "none", "ps_1_1", "ps_1_4", "ps_2_0", "ps_3_0", "ps_4_0", "ps_5_0", "nvrc", "nvts", "nvts2", "nvts3", "nvfp2", "arbfp1", "glsl"
+    "none", "ps_1_1", "ps_1_4", "ps_2_0", "ps_3_0", "ps_4_0", "ps_5_0", "nvrc", "nvts", "nvts2", "nvts3", "nvfp2", "arbfp1", "glsl", "wgsl"
 };
 
 const char* csProfileNames[] = {

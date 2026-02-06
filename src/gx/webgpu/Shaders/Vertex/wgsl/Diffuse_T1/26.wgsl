@@ -1,0 +1,61 @@
+struct UniformBlock_0_ {
+    vs_uniforms_vec4_: array<vec4<f32>, 256>,
+}
+
+struct VertexOutput {
+    @location(0) vs_o1_: vec4<f32>,
+    @location(1) vs_o2_: vec4<f32>,
+    @location(10) vs_o3_v: vec4<f32>,
+    @builtin(position) gl_Position: vec4<f32>,
+}
+
+@group(0) @binding(0) var<uniform> global: UniformBlock_0_;
+
+@vertex fn main(@location(0) vs_v0_: vec4<f32>, @location(1) vs_v1_: vec4<f32>, @location(2) @interpolate(flat) vs_v2_u: vec4<u32>, @location(6) vs_v3_: vec4<f32>) -> VertexOutput {
+    var vs_r0_: vec4<f32>;
+    var vs_r1_: vec4<f32>;
+    var vs_a0_: vec4<i32>;
+    var vs_o1_: vec4<f32>;
+    var vs_o2_: vec4<f32>;
+    var vs_o3_v: vec4<f32>;
+    var gl_Position: vec4<f32>;
+
+    var vs_v2_: vec4<f32>;
+
+    vs_v2_ = vec4<f32>(vs_v2_u);
+    vs_r0_ = (vec4<f32>(3f, 3f, 3f, 3f) * vs_v2_);
+    vs_a0_ = vec4<i32>((floor((abs(vs_r0_) + vec4(0.5f))) * sign(vs_r0_)));
+    vs_r0_ = (vs_v1_.yyyy * global.vs_uniforms_vec4_[(31i + vs_a0_.y)]);
+    vs_r0_ = ((global.vs_uniforms_vec4_[(31i + vs_a0_.x)] * vs_v1_.xxxx) + vs_r0_);
+    vs_r0_ = ((global.vs_uniforms_vec4_[(31i + vs_a0_.z)] * vs_v1_.zzzz) + vs_r0_);
+    vs_r0_ = ((global.vs_uniforms_vec4_[(31i + vs_a0_.w)] * vs_v1_.wwww) + vs_r0_);
+    vs_r0_.x = dot(vs_r0_, vs_v0_);
+    vs_r1_ = (vs_v1_.yyyy * global.vs_uniforms_vec4_[(32i + vs_a0_.y)]);
+    vs_r1_ = ((global.vs_uniforms_vec4_[(32i + vs_a0_.x)] * vs_v1_.xxxx) + vs_r1_);
+    vs_r1_ = ((global.vs_uniforms_vec4_[(32i + vs_a0_.z)] * vs_v1_.zzzz) + vs_r1_);
+    vs_r1_ = ((global.vs_uniforms_vec4_[(32i + vs_a0_.w)] * vs_v1_.wwww) + vs_r1_);
+    vs_r0_.y = dot(vs_r1_, vs_v0_);
+    vs_r1_ = (vs_v1_.yyyy * global.vs_uniforms_vec4_[(33i + vs_a0_.y)]);
+    vs_r1_ = ((global.vs_uniforms_vec4_[(33i + vs_a0_.x)] * vs_v1_.xxxx) + vs_r1_);
+    vs_r1_ = ((global.vs_uniforms_vec4_[(33i + vs_a0_.z)] * vs_v1_.zzzz) + vs_r1_);
+    vs_r1_ = ((global.vs_uniforms_vec4_[(33i + vs_a0_.w)] * vs_v1_.wwww) + vs_r1_);
+    vs_r0_.z = dot(vs_r1_, vs_v0_);
+    vs_r0_.w = 1f;
+    gl_Position.x = dot(global.vs_uniforms_vec4_[2], vs_r0_);
+    gl_Position.y = dot(global.vs_uniforms_vec4_[3], vs_r0_);
+    gl_Position.z = dot(global.vs_uniforms_vec4_[4], vs_r0_);
+    gl_Position.w = dot(global.vs_uniforms_vec4_[5], vs_r0_);
+    vs_r0_.x = ((vs_r0_.z * global.vs_uniforms_vec4_[30].x) + global.vs_uniforms_vec4_[30].y);
+    vs_r0_.x = max(vs_r0_.x, 0f);
+    vs_r1_.x = pow(abs(vs_r0_.x), global.vs_uniforms_vec4_[30].z);
+    vs_o3_v.x = min(vs_r1_.x, 1f);
+    vs_r0_ = global.vs_uniforms_vec4_[28];
+    vs_o1_ = clamp((vs_r0_ + global.vs_uniforms_vec4_[29]), vec4(0f), vec4(1f));
+    let _e297 = ((vs_v3_.xyx * vec3<f32>(1f, 1f, 0f)) + vec3<f32>(0f, 0f, 1f));
+    vs_r0_.x = _e297.x;
+    vs_r0_.y = _e297.y;
+    vs_r0_.z = _e297.z;
+    vs_o2_.x = dot(global.vs_uniforms_vec4_[6].xyw, vs_r0_.xyz);
+    vs_o2_.y = dot(global.vs_uniforms_vec4_[7].xyw, vs_r0_.xyz);
+    return VertexOutput(vs_o1_, vs_o2_, vs_o3_v, gl_Position);
+}

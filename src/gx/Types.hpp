@@ -35,7 +35,8 @@ enum EGxApi {
     GxApi_D3d10 = 3,
     GxApi_D3d11 = 4,
     GxApi_GLL = 5,
-    GxApis_Last = 6
+    GxApi_WebGPU = 6,
+    GxApis_Last = 7
 };
 
 enum EGxBlend {
@@ -213,6 +214,7 @@ enum EGxShPS {
     GxShPS_nvfp2 = 11,
     GxShPS_arbfp1 = 12,
     GxShPS_glsl = 13,
+    GxShPS_wgsl = 14,
 };
 
 enum EGxShTarget {
@@ -237,7 +239,8 @@ enum EGxShVS {
     GxShVS_nvvp = 8,
     GxShVS_nvvp2 = 9,
     GxShVS_nvvp3 = 10,
-    GxShVS_glsl = 11
+    GxShVS_glsl = 11,
+    GxShVS_wgsl = 12
 };
 
 enum EGxTexCommand {

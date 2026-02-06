@@ -415,6 +415,8 @@ void ConsoleDeviceInitialize(const char* title) {
     api = GxApi_D3d9;
 #elif defined(WHOA_SYSTEM_MAC)
     api = GxApi_GLL;
+#elif defined(WHOA_SYSTEM_WEB)
+    api = GxApi_WebGPU;
 #endif
 
     s_device = GxDevCreate(api, OsWindowProc, format);

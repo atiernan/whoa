@@ -66,6 +66,9 @@ if(WHOA_SYSTEM_WEB)
             util
     )
 
+    # Embed WGSL shaders into WASM binary
+    set(SHADER_DIR "${CMAKE_SOURCE_DIR}/src/gx/webgpu/Shaders")
+
     set_target_properties(Whoa PROPERTIES SUFFIX ".html")
 
     target_link_options(Whoa PRIVATE
@@ -74,6 +77,8 @@ if(WHOA_SYSTEM_WEB)
         -sASYNCIFY_STACK_SIZE=524288
         -sALLOW_MEMORY_GROWTH
         "-sASYNCIFY_IMPORTS=['__syscall_openat','__syscall_stat64','__syscall_lstat64','__syscall_fstat64']"
+        "SHELL:--embed-file ${SHADER_DIR}/Vertex/wgsl@/Shaders/Vertex/wgsl"
+        "SHELL:--embed-file ${SHADER_DIR}/Pixel/wgsl@/Shaders/Pixel/wgsl"
     )
 endif()
 

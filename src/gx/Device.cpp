@@ -29,6 +29,14 @@ CGxDevice* GxDevCreate(EGxApi api, int32_t (*windowProc)(void* window, uint32_t 
         }
     #endif
 
+    #if defined(WHOA_SYSTEM_WEB)
+        if (api == GxApi_WebGPU) {
+            device = CGxDevice::NewWebGPU();
+        } else {
+            // Error - WebGPU is the only supported API on web
+        }
+    #endif
+
     g_theGxDevicePtr = device;
 
     if (g_theGxDevicePtr->DeviceCreate(windowProc, format)) {
@@ -36,6 +44,7 @@ CGxDevice* GxDevCreate(EGxApi api, int32_t (*windowProc)(void* window, uint32_t 
     } else {
         if (g_theGxDevicePtr) {
             delete g_theGxDevicePtr;
+            g_theGxDevicePtr = nullptr;
         }
 
         return nullptr;
