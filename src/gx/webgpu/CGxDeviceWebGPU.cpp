@@ -445,10 +445,27 @@ int32_t CGxDeviceWebGPU::DeviceCreate(int32_t (*windowProc)(void* window, uint32
         return 0;
     }
 
-    // Request device
+    // Check for BC texture compression support (GPU accelerated DXT)
+    WGPUSupportedFeatures supportedFeatures = {};
+    wgpuAdapterGetFeatures(this->m_adapter, &supportedFeatures);
+
+    for (size_t i = 0; i < supportedFeatures.featureCount; i++) {
+        if (supportedFeatures.features[i] == WGPUFeatureName_TextureCompressionBC) {
+            this->m_bcFormatsSupported = true;
+            break;
+        }
+    }
+
+    // Request device with BC feature if supported
     WGPUDeviceDescriptor deviceDesc = {};
     WGPUStringView deviceLabel = { "Whoa WebGPU Device", WGPU_STRLEN };
     deviceDesc.label = deviceLabel;
+
+    WGPUFeatureName requiredFeatures[1] = { WGPUFeatureName_TextureCompressionBC };
+    if (this->m_bcFormatsSupported) {
+        deviceDesc.requiredFeatureCount = 1;
+        deviceDesc.requiredFeatures = requiredFeatures;
+    }
 
     // Error callback to catch silent shader/pipeline errors
     deviceDesc.uncapturedErrorCallbackInfo.callback = [](WGPUDevice const* device, WGPUErrorType type, WGPUStringView message, void* ud1, void* ud2) {
@@ -1612,6 +1629,19 @@ void CGxDeviceWebGPU::TexDestroy(CGxTex* texId) {
 
 // Texture creation
 
+WGPUTextureFormat CGxDeviceWebGPU::IGetTextureFormat(EGxTexFormat format) {
+    // Use native BC formats when GPU supports them, otherwise RGBA8 for compute shader decompression
+    if (this->m_bcFormatsSupported) {
+        switch (format) {
+            case GxTex_Dxt1: return WGPUTextureFormat_BC1RGBAUnorm;
+            case GxTex_Dxt3: return WGPUTextureFormat_BC2RGBAUnorm;
+            case GxTex_Dxt5: return WGPUTextureFormat_BC3RGBAUnorm;
+            default: break;
+        }
+    }
+    return s_gxTexFmtToWGPUFmt[format];
+}
+
 void CGxDeviceWebGPU::ITexCreate(CGxTex* tex) {
     if (!this->m_device || !tex) {
         return;
@@ -1630,13 +1660,14 @@ void CGxDeviceWebGPU::ITexCreate(CGxTex* tex) {
     uint32_t width, height, baseMip, mipCount;
     this->ITexWHDStartEnd(tex, width, height, baseMip, mipCount);
 
-    WGPUTextureFormat format = s_gxTexFmtToWGPUFmt[tex->m_format];
+    WGPUTextureFormat format = this->IGetTextureFormat(tex->m_format);
     if (format == WGPUTextureFormat_Undefined) {
         format = WGPUTextureFormat_RGBA8Unorm;
     }
 
     bool isCubeMap = (tex->m_target == GxTex_CubeMap);
     bool isDxt = (tex->m_format == GxTex_Dxt1 || tex->m_format == GxTex_Dxt3 || tex->m_format == GxTex_Dxt5);
+    bool needsComputeDecompress = isDxt && !this->m_bcFormatsSupported;
 
     static const char* s_gxTexFmtName[] = {
         "Unknown", "Abgr8888", "Argb8888", "Argb4444", "Argb1555",
@@ -1655,7 +1686,7 @@ void CGxDeviceWebGPU::ITexCreate(CGxTex* tex) {
     WGPUTextureDescriptor texDesc = {};
     texDesc.label = { texLabel.c_str(), WGPU_STRLEN };
     texDesc.usage = WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst;
-    if (isDxt) {
+    if (needsComputeDecompress) {
         texDesc.usage |= WGPUTextureUsage_StorageBinding;
     }
     if (tex->m_flags.m_renderTarget) {
@@ -1758,18 +1789,36 @@ void CGxDeviceWebGPU::ITexUpload(CGxTex* tex) {
             uint32_t mipHeight = std::max(1u, height >> mipLevel);
 
             if (isDxt) {
-                // GPU decompression via compute shader
                 uint32_t bytesPerBlock = (tex->m_format == GxTex_Dxt1) ? 8 : 16;
                 uint32_t blocksX = (mipWidth + 3) / 4;
                 uint32_t blocksY = (mipHeight + 3) / 4;
                 uint32_t blocksPerRow = texelStrideInBytes / bytesPerBlock;
                 uint32_t dataSize = texelStrideInBytes * blocksY;
 
-                this->IDxtDecompress(
-                    texData, texels, dataSize,
-                    mipWidth, mipHeight, blocksPerRow,
-                    mipLevel - baseMip, face, tex->m_format
-                );
+                if (this->m_bcFormatsSupported) {
+                    // Direct upload of compressed data (GPU accelerated)
+                    WGPUTexelCopyTextureInfo destination = {};
+                    destination.texture = texData->texture;
+                    destination.mipLevel = mipLevel - baseMip;
+                    destination.origin = { 0, 0, static_cast<uint32_t>(face) };
+                    destination.aspect = WGPUTextureAspect_All;
+
+                    WGPUTexelCopyBufferLayout dataLayout = {};
+                    dataLayout.offset = 0;
+                    dataLayout.bytesPerRow = blocksX * bytesPerBlock;
+                    dataLayout.rowsPerImage = blocksY;
+
+                    WGPUExtent3D writeSize = { mipWidth, mipHeight, 1 };
+
+                    wgpuQueueWriteTexture(this->m_queue, &destination, texels, dataSize, &dataLayout, &writeSize);
+                } else {
+                    // Fallback: GPU decompression via compute shader
+                    this->IDxtDecompress(
+                        texData, texels, dataSize,
+                        mipWidth, mipHeight, blocksPerRow,
+                        mipLevel - baseMip, face, tex->m_format
+                    );
+                }
             } else if (needsConversion) {
                 // CPU convert 16-bit → RGBA8
                 uint32_t rgba8BytesPerRow = mipWidth * 4;

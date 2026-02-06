@@ -37,7 +37,10 @@ class CGxDeviceWebGPU : public CGxDevice {
         uint32_t m_canvasWidth = 0;
         uint32_t m_canvasHeight = 0;
 
-        // DXT compute decompression pipeline
+        // Native BC format support (GPU accelerated DXT)
+        bool m_bcFormatsSupported = false;
+
+        // DXT compute decompression pipeline (fallback when native BC not supported)
         WGPUShaderModule m_dxtShaderModule = nullptr;
         WGPUComputePipeline m_dxtPipeline = nullptr;
         WGPUBindGroupLayout m_dxtBindGroupLayout = nullptr;
@@ -101,6 +104,7 @@ class CGxDeviceWebGPU : public CGxDevice {
         void IDestroyDepthTexture(void);
         void ITexCreate(CGxTex*);
         void ITexUpload(CGxTex*);
+        WGPUTextureFormat IGetTextureFormat(EGxTexFormat format);
         void IEnsureDxtPipeline(void);
         void IDxtDecompress(WebGPUTextureData* texData, const void* compressedData, uint32_t dataSize, uint32_t width, uint32_t height, uint32_t blocksPerRow, uint32_t mipLevel, uint32_t face, EGxTexFormat format);
         void IInitRenderPipeline(void);
