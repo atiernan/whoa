@@ -30,6 +30,14 @@ if(WHOA_SYSTEM_MAC)
     list(APPEND GX_SOURCES ${MAC_SOURCES})
 endif()
 
+if(WHOA_SYSTEM_WEB)
+    file(GLOB WEB_SOURCES
+        "webgpu/*.cpp"
+    )
+
+    list(APPEND GX_SOURCES ${WEB_SOURCES})
+endif()
+
 add_library(gx STATIC ${GX_SOURCES})
 
 target_include_directories(gx
@@ -62,5 +70,17 @@ if(WHOA_SYSTEM_MAC)
         PRIVATE
             "-framework AppKit"
             "-framework OpenGL"
+    )
+endif()
+
+if(WHOA_SYSTEM_WEB)
+    target_compile_options(gx
+        PRIVATE
+            --use-port=emdawnwebgpu
+    )
+
+    target_link_options(gx
+        PUBLIC
+            --use-port=emdawnwebgpu
     )
 endif()
