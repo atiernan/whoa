@@ -43,10 +43,22 @@ endif()
 
 if(WHOA_SYSTEM_WEB)
     set(FETCHFS_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/web/library_fetchfs.js)
-    target_link_options(util
-        PUBLIC
-            --js-library ${FETCHFS_LIBRARY}
-    )
-    # Ensure rebuild when JS library changes
-    set_property(TARGET util APPEND PROPERTY LINK_DEPENDS ${FETCHFS_LIBRARY})
+    set(LOCALFS_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/web/library_localfs.js)
+
+    # Use WHOA_USE_LOCALFS option to select filesystem backend
+    option(WHOA_USE_LOCALFS "Use local File System Access API instead of fetch-based file loading" OFF)
+
+    if(WHOA_USE_LOCALFS)
+        target_link_options(util
+            PUBLIC
+                --js-library ${LOCALFS_LIBRARY}
+        )
+        set_property(TARGET util APPEND PROPERTY LINK_DEPENDS ${LOCALFS_LIBRARY})
+    else()
+        target_link_options(util
+            PUBLIC
+                --js-library ${FETCHFS_LIBRARY}
+        )
+        set_property(TARGET util APPEND PROPERTY LINK_DEPENDS ${FETCHFS_LIBRARY})
+    endif()
 endif()

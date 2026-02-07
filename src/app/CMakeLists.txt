@@ -69,17 +69,32 @@ if(WHOA_SYSTEM_WEB)
     # Embed WGSL shaders into WASM binary
     set(SHADER_DIR "${CMAKE_SOURCE_DIR}/src/gx/webgpu/Shaders")
 
-    set_target_properties(Whoa PROPERTIES SUFFIX ".html")
+    set_target_properties(Whoa PROPERTIES OUTPUT_NAME "index" SUFFIX ".html")
+
+    # Select shell file based on filesystem backend
+    if(WHOA_USE_LOCALFS)
+        set(SHELL_FILE "${CMAKE_CURRENT_SOURCE_DIR}/web/shell_localfs.html")
+        # Additional Asyncify imports for LOCALFS async operations
+        set(ASYNCIFY_IMPORTS "['__syscall_openat','__syscall_stat64','__syscall_lstat64','__syscall_fstat64','localfs_select_directory','localfs_restore_directory','localfs_has_directory','localfs_clear_directory']")
+        # Define preprocessor macro for C++ code
+        target_compile_definitions(Whoa PRIVATE WHOA_USE_LOCALFS)
+    else()
+        set(SHELL_FILE "${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html")
+        set(ASYNCIFY_IMPORTS "['__syscall_openat','__syscall_stat64','__syscall_lstat64','__syscall_fstat64']")
+    endif()
 
     target_link_options(Whoa PRIVATE
-        "SHELL:--shell-file ${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html"
+        "SHELL:--shell-file ${SHELL_FILE}"
         -sASYNCIFY
         -sASYNCIFY_STACK_SIZE=524288
         -sALLOW_MEMORY_GROWTH
-        "-sASYNCIFY_IMPORTS=['__syscall_openat','__syscall_stat64','__syscall_lstat64','__syscall_fstat64']"
+        "-sASYNCIFY_IMPORTS=${ASYNCIFY_IMPORTS}"
         "SHELL:--embed-file ${SHADER_DIR}/Vertex/wgsl@/Shaders/Vertex/wgsl"
         "SHELL:--embed-file ${SHADER_DIR}/Pixel/wgsl@/Shaders/Pixel/wgsl"
     )
+
+    # Ensure changes to shell HTML trigger a relink
+    set_property(TARGET Whoa APPEND PROPERTY LINK_DEPENDS ${SHELL_FILE})
 endif()
 
 target_include_directories(Whoa
