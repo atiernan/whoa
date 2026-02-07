@@ -20,7 +20,7 @@ jobs:
     name: Build WASM
     runs-on: ubuntu-latest
     container:
-      image: emscripten/emsdk:4.0.3
+      image: emscripten/emsdk:latest
 
     steps:
       - uses: actions/checkout@v6
