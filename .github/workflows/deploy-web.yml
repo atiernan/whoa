@@ -1,0 +1,71 @@
+name: Deploy Web Build
+
+on:
+  push:
+    branches:
+      - gh-pages
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build WASM
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Setup Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.51
+
+      - name: Verify Emscripten
+        run: emcc --version
+
+      - name: Prepare
+        run: mkdir build-web
+
+      - name: Configure
+        run: cmake .. -DCMAKE_TOOLCHAIN_FILE=../lib/system/cmake/toolchain-web.cmake -DCMAKE_BUILD_TYPE=Release
+        working-directory: build-web
+
+      - name: Build
+        run: cmake --build . --config Release
+        working-directory: build-web
+
+      - name: Prepare Pages Artifact
+        run: |
+          mkdir -p _site
+          cp build-web/bin/index.html _site/
+          cp build-web/bin/index.js _site/
+          cp build-web/bin/index.wasm _site/
+          # Copy source maps if they exist
+          cp build-web/bin/*.map _site/ 2>/dev/null || true
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
