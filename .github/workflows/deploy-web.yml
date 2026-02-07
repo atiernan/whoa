@@ -37,11 +37,11 @@ jobs:
         run: mkdir build-web
 
       - name: Configure
-        run: cmake .. -DCMAKE_TOOLCHAIN_FILE=../lib/system/cmake/toolchain-web.cmake -DCMAKE_BUILD_TYPE=Release
+        run: emcmake cmake .. -DCMAKE_BUILD_TYPE=Release
         working-directory: build-web
 
       - name: Build
-        run: cmake --build . --config Release
+        run: emmake cmake --build . --config Release
         working-directory: build-web
 
       - name: Prepare Pages Artifact
