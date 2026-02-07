@@ -47,6 +47,8 @@ jobs:
           cp build-web/bin/index.wasm _site/
           # Copy source maps if they exist
           cp build-web/bin/*.map _site/ 2>/dev/null || true
+          # Copy service worker for SharedArrayBuffer support
+          cp web/coi-serviceworker.min.js _site/
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
