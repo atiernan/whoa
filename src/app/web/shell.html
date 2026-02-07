@@ -87,7 +87,6 @@
         var Module = {
             canvas: (function() {
                 var canvas = document.getElementById('canvas');
-                // Set canvas size to match window
                 canvas.width = window.innerWidth;
                 canvas.height = window.innerHeight;
                 return canvas;
@@ -103,7 +102,6 @@
                     statusElement.innerHTML = text;
                 }
 
-                // Parse progress if available
                 var match = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
                 if (match) {
                     var progress = parseInt(match[2]) / parseInt(match[4]) * 100;
@@ -130,7 +128,6 @@
             }
         };
 
-        // Handle window resize
         window.addEventListener('resize', function() {
             var canvas = document.getElementById('canvas');
             canvas.width = window.innerWidth;
