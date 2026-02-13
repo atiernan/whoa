@@ -257,7 +257,7 @@ int32_t FrameXML_CreateFrames(const char* tocPath, const char* a2, MD5_CTX* md5,
     size_t tocBytes;
 
     if (!SFile::Load(nullptr, tocPath, &tocBuffer, &tocBytes, 1, 1, nullptr)) {
-        status->Add(STATUS_ERROR, "Couldn't open %s", a2);
+        status->Add(STATUS_ERROR, "Couldn't open %s", filePath);
         return 0;
     }
 
